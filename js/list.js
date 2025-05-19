@@ -1,22 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
   const postsPerPage = 5;
   let currentPage = 1;
-  let posts = [
-    {
-      title: "디자인 작업 예시",
-      date: "2025-05-18",
-      category: "웹디자인",
-      slug: "sample-post",
-      excerpt: "클라이언트를 위한 반응형 홈페이지 디자인 사례입니다."
-    },
-    // 여기에 마크다운 글 메타데이터 추가
-  ];
 
+  // localStorage에서 글 불러오기
+  function loadPosts() {
+    const data = localStorage.getItem('nfpdesign_posts');
+    return data ? JSON.parse(data) : [];
+  }
+
+  let posts = loadPosts();
   let filteredPosts = [...posts];
 
-  const postsContainer = document.getElementById('posts-container');
+  const postsContainer = document.getElementById('post-list');
   const paginationContainer = document.getElementById('pagination');
-  const categoryFilter = document.getElementById('category-filter');
+  const categoryFilter = document.getElementById('categoryFilter');
 
   function renderPosts() {
     postsContainer.innerHTML = '';
@@ -29,13 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     pagePosts.forEach(post => {
-      const postEl = document.createElement('article');
+      const postEl = document.createElement('li');
       postEl.className = 'post-card';
       postEl.innerHTML = `
         <h2><a href="post.html?slug=${post.slug}">${post.title}</a></h2>
         <p class="date">${post.date}</p>
         <p class="category">${post.category}</p>
-        <p class="excerpt">${post.excerpt}</p>
+        <p class="excerpt">${post.content.substring(0, 100)}...</p>
       `;
       postsContainer.appendChild(postEl);
     });
@@ -44,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderPagination() {
     paginationContainer.innerHTML = '';
     const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-
     if (totalPages <= 1) return;
 
     for (let i = 1; i <= totalPages; i++) {
@@ -62,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   categoryFilter.addEventListener('change', () => {
     const selected = categoryFilter.value;
+    posts = loadPosts(); // 최신 글 불러오기
     filteredPosts = selected === 'all' ? posts : posts.filter(p => p.category === selected);
     currentPage = 1;
     renderPosts();
