@@ -1,132 +1,158 @@
-// admin.js
+// admin.js 파일
+// 사용자 인증 상태 확인
+function checkAuthentication() {
+  const user = netlifyIdentity.currentUser();
+  if (!user) {
+    // 사용자가 로그인되어 있지 않으면 관리자 콘텐츠 숨기기
+    document.getElementById('admin-content').style.display = 'none';
+    document.getElementById('login-container').style.display = 'block';
+    return false;
+  }
+  return true;
+}
+
+// 페이지 로드 시 인증 확인
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('postForm');
+  // 기존 관리자 기능 코드는 여기에 추가
+  // 예: 게시글 로드, 폼 제출 핸들러 등
+  
+  // 폼 제출 핸들러
+  const postForm = document.getElementById('postForm');
+  postForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // 인증 확인
+    if (!checkAuthentication()) return;
+    
+    // 여기에 게시글 저장 로직 추가
+    const postData = {
+      title: document.getElementById('postTitle').value,
+      date: document.getElementById('postDate').value,
+      category: document.getElementById('postCategory').value,
+      content: document.getElementById('postContent').value,
+      slug: document.getElementById('postSlug').value || generateSlug(document.getElementById('postTitle').value)
+    };
+    
+    savePost(postData);
+  });
+  
+  // 초기화 버튼 핸들러
+  document.getElementById('resetBtn').addEventListener('click', resetForm);
+  
+  // 게시글 목록 로드
+  loadPosts();
+});
+
+// 게시글 저장 함수
+function savePost(postData) {
+  // 인증 확인
+  if (!checkAuthentication()) return;
+  
+  // 여기에 게시글 저장 API 호출 또는 로컬 스토리지 저장 로직 추가
+  console.log('게시글 저장:', postData);
+  
+  // 예시: 로컬 스토리지에 저장
+  let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+  
+  // 게시글 업데이트 또는 새 게시글 추가
+  const existingIndex = posts.findIndex(post => post.slug === postData.slug);
+  if (existingIndex >= 0) {
+    posts[existingIndex] = postData;
+  } else {
+    posts.push(postData);
+  }
+  
+  localStorage.setItem('posts', JSON.stringify(posts));
+  
+  // 폼 초기화 및 게시글 목록 갱신
+  resetForm();
+  loadPosts();
+}
+
+// 게시글 목록 로드 함수
+function loadPosts() {
+  // 인증 확인
+  if (!checkAuthentication()) return;
+  
+  // 여기에 게시글 로드 API 호출 또는 로컬 스토리지 로드 로직 추가
+  const posts = JSON.parse(localStorage.getItem('posts') || '[]');
   const postList = document.getElementById('postList');
-  const resetBtn = document.getElementById('resetBtn');
-
-  // 로컬스토리지 키
-  const STORAGE_KEY = 'nfpdesign_posts';
-
-  // 현재 수정중인 글 슬러그
-  let editingSlug = null;
-
-  // 저장된 게시글 불러오기
-  function loadPosts() {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  }
-
-  // 저장된 게시글 저장하기
-  function savePosts(posts) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-  }
-
-  // 게시글 목록 화면에 표시
-  function renderPosts() {
-    const posts = loadPosts();
-    postList.innerHTML = '';
-
-    if (posts.length === 0) {
-      postList.innerHTML = '<li>저장된 게시글이 없습니다.</li>';
-      return;
-    }
-
-    posts.forEach(post => {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <strong>${post.title}</strong> (${post.date}) [${post.category}]
-        <div class="post-actions">
-          <button data-slug="${post.slug}" class="editBtn">수정</button>
-          <button data-slug="${post.slug}" class="deleteBtn">삭제</button>
-        </div>
-      `;
-      postList.appendChild(li);
+  
+  // 게시글 목록 렌더링
+  postList.innerHTML = '';
+  posts.forEach(post => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span><strong>${post.title}</strong></span>
+      <span>${post.date}</span>
+      <span>${post.category}</span>
+      <div class="post-actions">
+        <button type="button" data-slug="${post.slug}" class="edit-btn">수정</button>
+        <button type="button" data-slug="${post.slug}" class="delete-btn">삭제</button>
+      </div>
+    `;
+    postList.appendChild(li);
+  });
+  
+  // 수정 버튼 이벤트 핸들러 추가
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const slug = this.getAttribute('data-slug');
+      editPost(slug);
     });
-  }
+  });
+  
+  // 삭제 버튼 이벤트 핸들러 추가
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const slug = this.getAttribute('data-slug');
+      deletePost(slug);
+    });
+  });
+}
 
-  // 유니크 슬러그 생성 (제목에서 특수문자 제거 + 날짜 + 랜덤 숫자)
-  function generateSlug(title) {
-    const slugBase = title.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
-    const randomNum = Math.floor(Math.random() * 10000);
-    return `${slugBase}-${Date.now()}-${randomNum}`;
-  }
-
-  // 폼 초기화
-  function resetForm() {
-    editingSlug = null;
-    form.reset();
-    document.getElementById('postSlug').value = '';
-  }
-
-  // 폼에 데이터 채우기 (수정용)
-  function fillForm(post) {
-    editingSlug = post.slug;
-    document.getElementById('postSlug').value = post.slug;
+// 게시글 수정 함수
+function editPost(slug) {
+  // 인증 확인
+  if (!checkAuthentication()) return;
+  
+  const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+  const post = posts.find(p => p.slug === slug);
+  
+  if (post) {
     document.getElementById('postTitle').value = post.title;
     document.getElementById('postDate').value = post.date;
     document.getElementById('postCategory').value = post.category;
     document.getElementById('postContent').value = post.content;
+    document.getElementById('postSlug').value = post.slug;
   }
+}
 
-  // 글 저장 (새 글 또는 수정)
-  form.addEventListener('submit', e => {
-    e.preventDefault();
+// 게시글 삭제 함수
+function deletePost(slug) {
+  // 인증 확인
+  if (!checkAuthentication()) return;
+  
+  if (confirm('정말 이 게시글을 삭제하시겠습니까?')) {
+    let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+    posts = posts.filter(post => post.slug !== slug);
+    localStorage.setItem('posts', JSON.stringify(posts));
+    loadPosts();
+  }
+}
 
-    const title = document.getElementById('postTitle').value.trim();
-    const date = document.getElementById('postDate').value.trim();
-    const category = document.getElementById('postCategory').value;
-    const content = document.getElementById('postContent').value.trim();
+// 폼 초기화 함수
+function resetForm() {
+  document.getElementById('postForm').reset();
+  document.getElementById('postSlug').value = '';
+}
 
-    if (!title || !date || !category || !content) {
-      alert('모든 항목을 입력해주세요.');
-      return;
-    }
-
-    const posts = loadPosts();
-
-    if (editingSlug) {
-      // 수정: 기존 글 찾아 업데이트
-      const index = posts.findIndex(p => p.slug === editingSlug);
-      if (index > -1) {
-        posts[index] = { slug: editingSlug, title, date, category, content };
-      }
-    } else {
-      // 새 글: 슬러그 생성 후 추가
-      const slug = generateSlug(title);
-      posts.push({ slug, title, date, category, content });
-    }
-
-    savePosts(posts);
-    renderPosts();
-    resetForm();
-  });
-
-  // 게시글 수정 버튼 이벤트 처리
-  postList.addEventListener('click', e => {
-    if (e.target.classList.contains('editBtn')) {
-      const slug = e.target.getAttribute('data-slug');
-      const posts = loadPosts();
-      const post = posts.find(p => p.slug === slug);
-      if (post) fillForm(post);
-    }
-
-    // 게시글 삭제 버튼 이벤트 처리
-    if (e.target.classList.contains('deleteBtn')) {
-      if (!confirm('정말 삭제하시겠습니까?')) return;
-      const slug = e.target.getAttribute('data-slug');
-      let posts = loadPosts();
-      posts = posts.filter(p => p.slug !== slug);
-      savePosts(posts);
-      renderPosts();
-      if (editingSlug === slug) resetForm();
-    }
-  });
-
-  // 초기화 버튼 클릭 시 폼 초기화
-  resetBtn.addEventListener('click', () => {
-    resetForm();
-  });
-
-  // 초기 게시글 목록 표시
-  renderPosts();
-});
+// 슬러그 생성 함수
+function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
