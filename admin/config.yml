@@ -1,0 +1,19 @@
+# Netlify CMS 설정파일
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: "posts"
+    label: "게시글"
+    folder: "posts"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "제목", name: "title", widget: "string" }
+      - { label: "날짜", name: "date", widget: "datetime" }
+      - { label: "카테고리", name: "category", widget: "string" }
+      - { label: "본문", name: "body", widget: "markdown" }

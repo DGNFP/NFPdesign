@@ -1,0 +1,24 @@
+<!-- 게시글 목록 페이지 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시글 목록</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main>
+    <h1>모든 게시글</h1>
+    <div>
+      <select id="categoryFilter">
+        <option value="all">전체</option>
+        <option value="웹디자인">웹디자인</option>
+        <option value="콘텐츠디자인">콘텐츠디자인</option>
+      </select>
+    </div>
+    <ul id="post-list"></ul>
+    <div id="pagination"></div>
+  </main>
+  <script src="js/list.js"></script>
+</body>
+</html>
