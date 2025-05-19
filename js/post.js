@@ -1,6 +1,21 @@
-// 게시글 상세 스크립트 (추후 작성)
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("게시글 상세 페이지 로드됨");
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
 
-  // 게시글 로딩 기능 구현 예정
+  if (!slug) {
+    document.getElementById('post-content').innerHTML = '<p>게시글을 찾을 수 없습니다.</p>';
+    return;
+  }
+
+  fetch(`posts/${slug}.md`)
+    .then(res => {
+      if (!res.ok) throw new Error('게시글 로드 실패');
+      return res.text();
+    })
+    .then(md => {
+      document.getElementById('post-content').innerHTML = marked.parse(md);
+    })
+    .catch(err => {
+      document.getElementById('post-content').innerHTML = `<p>${err.message}</p>`;
+    });
 });
