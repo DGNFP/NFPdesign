@@ -11,9 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let posts = loadPosts();
   let filteredPosts = [...posts];
 
-  const postsContainer = document.getElementById('post-list');
+  // HTML에 맞게 ID 수정
+  const postsContainer = document.getElementById('posts-container');
   const paginationContainer = document.getElementById('pagination');
-  const categoryFilter = document.getElementById('categoryFilter');
+  const categoryFilter = document.getElementById('category-filter');
 
   function renderPosts() {
     postsContainer.innerHTML = '';
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <h2><a href="post.html?slug=${post.slug}">${post.title}</a></h2>
         <p class="date">${post.date}</p>
         <p class="category">${post.category}</p>
-        <p class="excerpt">${post.content.substring(0, 100)}...</p>
+        <p class="excerpt">${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
       `;
       postsContainer.appendChild(postEl);
     });
@@ -65,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPagination();
   });
 
+  // 초기 렌더링
   renderPosts();
   renderPagination();
 });
