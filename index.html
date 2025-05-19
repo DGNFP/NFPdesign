@@ -18,5 +18,24 @@
       <h2><a href="admin/index.html">관리자 페이지</a></h2>
     </section>
   </main>
+
+  <footer>
+    <!-- 푸터 콘텐츠 -->
+  </footer>
+
+  <!-- 로그인 후 자동 리디렉션을 위한 스크립트 -->
+  <script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", user => {
+        if (!user) {
+          window.netlifyIdentity.on("login", () => {
+            document.location.href = "/admin/";
+          });
+        }
+      });
+    }
+  </script>
+
+
 </body>
 </html>

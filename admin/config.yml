@@ -1,19 +1,29 @@
-# Netlify CMS 설정파일
 backend:
   name: git-gateway
-  branch: main
+  branch: main # 사용하는 Git 브랜치 (main 또는 master)
 
-media_folder: "images"
-public_folder: "/images"
+# 미디어 파일이 저장될 경로
+media_folder: "static/images/uploads"
+public_folder: "/images/uploads"
+
+# 한국어 설정
+locale: 'ko'
+
+# 콘텐츠 편집 시 미리보기 설정 (선택 사항)
+# site_url: https://your-site-url.com
+# display_url: https://your-site-url.com
 
 collections:
-  - name: "posts"
-    label: "게시글"
-    folder: "posts"
-    create: true
-    slug: "{{slug}}"
-    fields:
-      - { label: "제목", name: "title", widget: "string" }
-      - { label: "날짜", name: "date", widget: "datetime" }
-      - { label: "카테고리", name: "category", widget: "string" }
-      - { label: "본문", name: "body", widget: "markdown" }
+  - name: "posts" # 콘텐츠 유형의 이름
+    label: "게시글" # 관리자 UI에 표시될 이름
+    folder: "content/posts" # 콘텐츠가 저장될 폴더 경로
+    create: true # 새 콘텐츠 생성 허용
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}" # 파일명 형식
+    fields: # 필드 정의
+      - {label: "제목", name: "title", widget: "string"}
+      - {label: "게시일", name: "date", widget: "datetime", format: "YYYY-MM-DD"}
+      - {label: "카테고리", name: "category", widget: "select", options: ["웹디자인", "콘텐츠디자인", "영상디자인", "광고/인쇄디자인"]}
+      - {label: "내용", name: "body", widget: "markdown"}
+  
+  # 추가 콘텐츠 유형을 여기에 정의할 수 있습니다
+  # 예: 프로젝트, 서비스 등
